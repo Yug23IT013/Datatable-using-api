@@ -1,0 +1,70 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f8f9fa;
+}
+
+#admissionTable {
+    width: 100%;
+    margin-top: 20px;
+}
+
+#admissionTable th,
+#admissionTable td {
+    text-align: center;
+    vertical-align: middle;
+}
+
+#admissionTable tbody tr:hover {
+    background-color: #f1f1f1;
+}
+
+.btn {
+    font-size: 0.9rem;
+    padding: 5px 10px;
+}
+
+.btn:hover {
+    opacity: 0.9;
+}
+.editBtn,
+.deleteBtn {
+    cursor: pointer;
+    font-size: 1.2rem;
+    margin: 0 5px;
+}
+.dropdown-item {
+    cursor: pointer;
+}
+
+.iti--valid .iti__flag-container,
+.iti--valid input {
+    background-image: none !important;
+}
+
+.iti__validation-icon {
+    display: none !important;
+}
+
+.iti--valid input {
+    border-color: #ced4da !important; 
+    box-shadow: none !important;
+    background-image: none !important;
+}
+
+.iti--valid input[type="tel"]::after,
+.iti--valid .iti__flag-container::after {
+    display: none !important;
+    content: none !important;
+}
+
+#phoneInput.is-valid {
+    border-color: #ced4da !important;
+    box-shadow: none !important;
+    background-image: none !important;
+}
+
+#phoneInput.is-invalid, .iti--error input {
+    border: 2px solid #dc3545 !important; 
+    box-shadow: 0 0 0 0.2rem rgba(220,53,69,.25);
+}
+
