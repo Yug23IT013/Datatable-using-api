@@ -366,7 +366,7 @@ $(document).ready(function () {
         initialCountry: "auto",
         allowDropdown: true,
         autoHideDialCode: false,
-        utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@18.1.1/build/js/utils.js",
+        utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@21.1.1/build/js/utils.js",
         geoIpLookup: function (callback) {
             fetch('https://ipinfo.io/json')
                 .then(resp => resp.json())
@@ -375,12 +375,7 @@ $(document).ready(function () {
         }
     });
 
-    $('#phoneInput').on('change keyup blur countrychange', function () {
-        $('#admissionForm').validate().element(this);
-    });
-
-    // Validate button click
-    $('#validatePhoneBtn').click(function () {
+    $('#phoneInput').on('input change keyup blur countrychange', function () {
         const input = document.querySelector("#phoneInput");
         const itiInstance = window.intlTelInputGlobals.getInstance(input);
         const value = input.value.replace(/\D/g, '');
@@ -389,5 +384,6 @@ $(document).ready(function () {
         } else {
             $('#phoneValidationMsg').text('Invalid phone number!').css('color', 'red');
         }
+        $('#admissionForm').validate().element(this);
     });
 });
