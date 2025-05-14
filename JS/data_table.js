@@ -14,6 +14,18 @@ $(document).ready(function () {
 
     // Function to initialize DataTable
     function initializeDataTable(data) {
+        // Dynamically generate thead to match columns
+        const firstRow = data.response[0];
+        let theadHtml = '<tr>';
+        Object.keys(firstRow).forEach(key => {
+            if (key !== 'registration_main_id' && key !== 'created_time') {
+                // Convert snake_case to Title Case for display
+                theadHtml += `<th>${key.replace(/_/g, ' ').replace(/\\b\\w/g, l => l.toUpperCase())}</th>`;
+            }
+        });
+        theadHtml += '<th>Actions</th></tr>';
+        $('#admissionTable thead').html(theadHtml);
+
         admissionTable = $('#admissionTable').DataTable({
             data: data.response,
             dom: 'Bfrtip',
@@ -55,15 +67,15 @@ $(document).ready(function () {
                     title: 'Admission Data'
                 }
             ],
-            columns: [
-                { data: "user_code" },
-                { data: "first_name" },
-                { data: "middle_name" },
-                { data: "last_name" },
-                { data: "phone_number" },
-                { data: "phone_country_code" },
-                { data: "email" },
-                {
+            columns: (() => {
+                const columns = [];
+                const firstRow = data.response[0];
+                Object.keys(firstRow).forEach(key => {
+                    if (key !== 'registration_main_id' && key !== 'created_time') {
+                        columns.push({ data: key });
+                    }
+                });
+                columns.push({
                     data: null,
                     render: function () {
                         return `
@@ -71,8 +83,10 @@ $(document).ready(function () {
                             <i class="bi bi-trash deleteBtn" aria-label="Delete User"></i>
                         `;
                     }
-                }
-            ],
+                });
+                
+                return columns;
+            })(),
             language: {
                 buttons: {
                     excel: 'Export to Excel',
@@ -185,8 +199,8 @@ $(document).ready(function () {
         }
         // Remove non-digit characters and check length
         var digits = value.replace(/\D/g, '');
-        return digits.length >= 10;
-    }, "Please enter a valid phone number (at least 10 digits)");
+        return digits.length < 15;
+    }, "Please enter a valid phone number");
 
     // jQuery Validation setup
     $('#admissionForm').validate({
@@ -197,7 +211,6 @@ $(document).ready(function () {
             phoneInput: {
                 required: true,
                 validPhone: true,
-                minlength: 10
             },
             email: {
                 required: true,
@@ -364,6 +377,7 @@ $(document).ready(function () {
     const iti = window.intlTelInput(document.querySelector("#phoneInput"), {
         initialCountry: "auto",
         allowDropdown: true,
+        strictMode: true,
         autoHideDialCode: false,
         utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@21.1.1/build/js/utils.js",
         geoIpLookup: function (callback) {
@@ -379,9 +393,9 @@ $(document).ready(function () {
         const itiInstance = window.intlTelInputGlobals.getInstance(input);
         const value = input.value.replace(/\D/g, '');
         if (itiInstance && itiInstance.isValidNumber() && value.length >= 10) {
-            $('#phoneValidationMsg').text('Valid phone number!').css('color', 'green');
+            $('#phoneValidationMsg').css('color', 'green');
         } else {
-            $('#phoneValidationMsg').text('Invalid phone number!').css('color', 'red');
+            $('#phoneValidationMsg').css('color', 'red');
         }
         $('#admissionForm').validate().element(this);
     });
