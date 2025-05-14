@@ -48,33 +48,31 @@
                 </div>
                 <div class="modal-body">
                     <form id="admissionForm">
-                        <input type="hidden" id="registrationMainId">
+                        <input type="hidden" id="registrationMainId" name="registrationMainId">
                         <div class="mb-3">
                             <label for="userCode" class="form-label">User Code</label>
-                            <input type="text" class="form-control" id="userCode" required>
+                            <input type="text" class="form-control" id="userCode" name="userCode" required>
                         </div>
                         <div class="mb-3">
                             <label for="firstName" class="form-label">First Name</label>
-                            <input type="text" class="form-control" id="firstName" required>
+                            <input type="text" class="form-control" id="firstName" name="firstName" required>
                         </div>
                         <div class="mb-3">
                             <label for="middleName" class="form-label">Middle Name</label>
-                            <input type="text" class="form-control" id="middleName">
+                            <input type="text" class="form-control" id="middleName" name="middleName" required>
                         </div>
                         <div class="mb-3">
                             <label for="lastName" class="form-label">Last Name</label>
-                            <input type="text" class="form-control" id="lastName" required>
+                            <input type="text" class="form-control" id="lastName" name="lastName" required>
                         </div>
                         <div class="mb-3">
                             <label for="phoneInput" class="form-label">Phone Number</label>
-                            <div class="input-group">
-                                <input type="tel" class="form-control" id="phoneInput" required>
-                            </div>
+                                <input type="tel" class="form-control" id="phoneInput" name="phoneInput" required>
                             <div id="phoneValidationMsg" class="mt-1"></div>
                         </div>
                         <div class="mb-3">
                             <label for="email" class="form-label">Email</label>
-                            <input type="email" class="form-control" id="email" required>
+                            <input type="email" class="form-control" id="email" name="email" required>
                         </div>
                         <button type="submit" class="btn btn-primary" id="saveButton" aria-label="Save Admission">Save</button>
                     </form>
@@ -93,7 +91,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
-    <script src="JS/data_table-min.js"></script>
+    <script src="https://cdn.datatables.net/autofill/2.6.0/js/dataTables.autoFill.min.js"></script>
+    <script src="JS/data_table.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@21.1.1/build/js/intlTelInput.min.js"></script>
 </body>
