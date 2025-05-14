@@ -236,7 +236,6 @@ $(document).ready(function () {
             return;
         }
 
-        // Enforce phone validation before submit
         if (!iti.isValidNumber()) {
             $('#phoneInput').addClass('is-invalid');
             return;
@@ -375,7 +374,7 @@ $(document).ready(function () {
         }
     });
 
-    $('#phoneInput').on('input change keyup blur countrychange', function () {
+    $('#phoneInput').on('input', function () {
         const input = document.querySelector("#phoneInput");
         const itiInstance = window.intlTelInputGlobals.getInstance(input);
         const value = input.value.replace(/\D/g, '');
