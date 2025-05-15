@@ -14,12 +14,11 @@ $(document).ready(function () {
 
     // Function to initialize DataTable
     function initializeDataTable(data) {
-        // Dynamically generate thead to match columns
+
         const firstRow = data.response[0];
         let theadHtml = '<tr>';
         Object.keys(firstRow).forEach(key => {
             if (key !== 'registration_main_id' && key !== 'created_time') {
-                // Convert snake_case to Title Case for display
                 theadHtml += `<th>${key.replace(/_/g, ' ').replace(/\\b\\w/g, l => l.toUpperCase())}</th>`;
             }
         });
@@ -27,7 +26,6 @@ $(document).ready(function () {
         $('#admissionTable thead').html(theadHtml);
 
         admissionTable = $('#admissionTable').DataTable({
-            data: data.response,
             dom: 'Bfrtip',
             buttons: [
                 {
@@ -77,14 +75,16 @@ $(document).ready(function () {
                 });
                 columns.push({
                     data: null,
-                    render: function () {
+                    render: function (data, type, row) {
                         return `
-                            <i class="bi bi-pencil-square editBtn" aria-label="Edit User"></i>
-                            <i class="bi bi-trash deleteBtn" aria-label="Delete User"></i>
+                            <div class="d-flex justify-content-center">
+                                <i class="bi bi-pencil-square editBtn" style="cursor: pointer; margin-right: 10px;" aria-label="Edit User"></i>
+                                <i class="bi bi-trash deleteBtn" style="cursor: pointer;" aria-label="Delete User"></i>
+                            </div>
                         `;
                     }
                 });
-                
+
                 return columns;
             })(),
             language: {
@@ -94,8 +94,81 @@ $(document).ready(function () {
                     pdf: 'Export to PDF',
                     print: 'Print Table'
                 }
+            },
+            drawCallback: function() {
+                // Rebind event handlers after each draw
+                $('#admissionTable tbody').off('click', '.editBtn').on('click', '.editBtn', function() {
+                    const rowData = admissionTable.row($(this).closest('tr')).data();
+                    const createdTime = new Date(rowData.created_time);
+                    const now = new Date();
+                    const diffMs = now - createdTime;
+                    const diffHours = diffMs / (1000 * 60 * 60);
+                    $('#phoneValidationMsg').text('');
+                    if (diffHours >= 24) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Edit Disabled',
+                            text: 'You cannot edit record after 1 day.'
+                        });
+                        return;
+                    }
+
+                    $('#registrationMainId').val(rowData.registration_main_id);
+                    $('#userCode').val(rowData.user_code);
+                    $('#firstName').val(rowData.first_name);
+                    $('#middleName').val(rowData.middle_name);
+                    $('#lastName').val(rowData.last_name);
+                    $('#phoneInput').val(rowData.phone_number);
+                    $('#email').val(rowData.email);
+                    $('#admissionForm').validate().resetForm();
+                    $('#admissionForm .form-control').removeClass('is-invalid is-valid');
+                    $('#admissionModal').modal('show');
+                    iti.setNumber(rowData.phone_country_code + rowData.phone_number);
+                });
+
+                $('#admissionTable tbody').off('click', '.deleteBtn').on('click', '.deleteBtn', function() {
+                    const rowData = admissionTable.row($(this).closest('tr')).data();
+                    Swal.fire({
+                        title: 'Are you sure?',
+                        text: "You won't be able to revert this!",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#FF0000',
+                        cancelButtonColor: '#3085d6',
+                        confirmButtonText: 'Yes, delete it!'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            $.ajax({
+                                url: apiUrl,
+                                type: "DELETE",
+                                contentType: "application/json",
+                                data: JSON.stringify({ registration_main_id: rowData.registration_main_id }),
+                                success: function() {
+                                    reloadTableData();
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Deleted!',
+                                        text: 'User has been deleted successfully',
+                                        timer: 2000,
+                                        showConfirmButton: false
+                                    });
+                                },
+                                error: function() {
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: 'Error!',
+                                        text: 'Failed to delete user'
+                                    });
+                                }
+                            });
+                        }
+                    });
+                });
             }
         });
+        
+        // Add initial data
+        admissionTable.rows.add(data.response).draw();
     }
 
     // Show loading state
@@ -158,36 +231,6 @@ $(document).ready(function () {
         $('#admissionForm .form-control').removeClass('is-invalid is-valid');
         $('#admissionModal').modal('show');
         $('#phoneValidationMsg').text('');
-    });
-
-    // Edit button click
-    $('#admissionTable tbody').on('click', '.editBtn', function () {
-        const rowData = admissionTable.row($(this).parents('tr')).data();
-        const createdTime = new Date(rowData.created_time);
-        const now = new Date();
-        const diffMs = now - createdTime;
-        const diffHours = diffMs / (1000 * 60 * 60);
-        $('#phoneValidationMsg').text('');
-        if (diffHours >= 24) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Edit Disabled',
-                text: 'You cannot edit record after 1 day.'
-            });
-            return;
-        }
-
-        $('#registrationMainId').val(rowData.registration_main_id);
-        $('#userCode').val(rowData.user_code);
-        $('#firstName').val(rowData.first_name);
-        $('#middleName').val(rowData.middle_name);
-        $('#lastName').val(rowData.last_name);
-        $('#phoneInput').val(rowData.phone_number);
-        $('#email').val(rowData.email);
-        $('#admissionForm').validate().resetForm();
-        $('#admissionForm .form-control').removeClass('is-invalid is-valid');
-        $('#admissionModal').modal('show');
-        iti.setNumber(rowData.phone_country_code + rowData.phone_number);
     });
 
     // Add this AFTER the iti initialization
@@ -331,47 +374,6 @@ $(document).ready(function () {
                 text: 'Invalid method'
             });
         }
-    });
-
-    // Delete button click
-    $('#admissionTable tbody').on('click', '.deleteBtn', function () {
-        const rowData = admissionTable.row($(this).parents('tr')).data();
-
-        Swal.fire({
-            title: 'Are you sure?',
-            text: "You won't be able to revert this!",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#FF0000',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Yes, delete it!'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                $.ajax({
-                    url: apiUrl,
-                    type: "DELETE",
-                    contentType: "application/json",
-                    data: JSON.stringify({ registration_main_id: rowData.registration_main_id }),
-                    success: function () {
-                        reloadTableData();
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Deleted!',
-                            text: 'User has been deleted successfully',
-                            timer: 2000,
-                            showConfirmButton: false
-                        });
-                    },
-                    error: function () {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error!',
-                            text: 'Failed to delete user'
-                        });
-                    }
-                });
-            }
-        });
     });
 
     const iti = window.intlTelInput(document.querySelector("#phoneInput"), {
