@@ -11,43 +11,43 @@ $(document).ready(function () {
         });
     }
 
-    function generateColumns(firstRow) {
-        const columns = [];
-
+    function createTable(data) {
+        const table = $('#admissionTable');
+        const thead = $('<thead>');
+        const tbody = $('<tbody>');
+        const headerRow = $('<tr>');
+        const firstRow = data.response[0];
         Object.keys(firstRow).forEach(key => {
             if (key !== 'registration_main_id' && key !== 'created_time') {
-                columns.push({ data: key });
+                const th = $('<th>').text(key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()));
+                headerRow.append(th);
             }
         });
+        headerRow.append($('<th>').text('Actions'));
+        thead.append(headerRow);
 
-        columns.push({
-            data: null,
-            render: function (data, type, row) {
-                return `
-                    <div class="d-flex justify-content-center">
-                        <i class="bi bi-pencil-square editBtn" style="cursor: pointer; margin-right: 10px;" aria-label="Edit User"></i>
-                        <i class="bi bi-trash deleteBtn" style="cursor: pointer;" aria-label="Delete User"></i>
-                    </div>
-                `;
-            }
+        data.response.forEach(row => {
+            const tr = $('<tr>').attr('data-row', JSON.stringify(row));
+            Object.keys(row).forEach(key => {
+                if (key !== 'registration_main_id' && key !== 'created_time') {
+                    const td = $('<td>').text(row[key]);
+                    tr.append(td);
+                }
+            });
+            const actionsTd = $('<td>').html(`
+                <div class="d-flex justify-content-center">
+                    <i class="bi bi-pencil-square editBtn" style="cursor: pointer; margin-right: 10px;" aria-label="Edit User"></i>
+                    <i class="bi bi-trash deleteBtn" style="cursor: pointer;" aria-label="Delete User"></i>
+                </div>
+            `);
+            tr.append(actionsTd);
+            tbody.append(tr);
         });
-
-        return columns;
+        table.empty().append(thead).append(tbody);
     }
 
-    // Function to initialize DataTable
     function initializeDataTable(data) {
-
-        const firstRow = data.response[0];
-        let theadHtml = '<tr>';
-        Object.keys(firstRow).forEach(key => {
-            if (key !== 'registration_main_id' && key !== 'created_time') {
-                theadHtml += `<th>${key.replace(/_/g, ' ').replace(/\\b\\w/g, l => l.toUpperCase())}</th>`;
-            }
-        });
-        theadHtml += '<th>Actions</th></tr>';
-        $('#admissionTable thead').html(theadHtml);
-
+        createTable(data);
         admissionTable = $('#admissionTable').DataTable({
             dom: 'Bfrtip',
             buttons: [
@@ -88,7 +88,6 @@ $(document).ready(function () {
                     title: 'Admission Data'
                 }
             ],
-            columns: generateColumns(data.response[0]),
             language: {
                 buttons: {
                     excel: 'Export to Excel',
@@ -99,7 +98,8 @@ $(document).ready(function () {
             },
             drawCallback: function () {
                 $('#admissionTable tbody').off('click', '.editBtn').on('click', '.editBtn', function () {
-                    const rowData = admissionTable.row($(this).closest('tr')).data();
+                    const tr = $(this).closest('tr');
+                    const rowData = JSON.parse(tr.attr('data-row'));
                     const createdTime = new Date(rowData.created_time);
                     const now = new Date();
                     const diffMs = now - createdTime;
@@ -128,7 +128,8 @@ $(document).ready(function () {
                 });
 
                 $('#admissionTable tbody').off('click', '.deleteBtn').on('click', '.deleteBtn', function () {
-                    const rowData = admissionTable.row($(this).closest('tr')).data();
+                    const tr = $(this).closest('tr');
+                    const rowData = JSON.parse(tr.attr('data-row'));
                     Swal.fire({
                         title: 'Are you sure?',
                         text: "You won't be able to revert this!",
@@ -167,8 +168,6 @@ $(document).ready(function () {
                 });
             }
         });
-        
-        admissionTable.rows.add(data.response).draw();
     }
 
     // Show loading state
@@ -210,8 +209,11 @@ $(document).ready(function () {
         fetchTableData()
             .then(response => {
                 Swal.close();
-                admissionTable.clear();
-                admissionTable.rows.add(response.response).draw();
+                if ($.fn.DataTable.isDataTable('#admissionTable')) {
+                    $('#admissionTable').DataTable().destroy();
+                }
+                createTable(response);
+                initializeDataTable(response);
             })
             .catch(error => {
                 Swal.fire({
@@ -325,11 +327,18 @@ $(document).ready(function () {
                 data: $.param(userData),
                 success: function () {
                     $('#admissionModal').modal('hide');
-                    reloadTableData();
+                    // Destroy and reload table
+                    if ($.fn.DataTable.isDataTable('#admissionTable')) {
+                        $('#admissionTable').DataTable().destroy();
+                    }
+                    fetchTableData().then(response => {
+                        createTable(response);
+                        initializeDataTable(response);
+                    });
                     Swal.fire({
                         icon: 'success',
                         title: 'Success!',
-                        text: 'User has been added successfully',
+                        text: 'User has been added/updated successfully',
                         timer: 2000,
                         showConfirmButton: false
                     });
@@ -350,7 +359,14 @@ $(document).ready(function () {
                 data: JSON.stringify(userData),
                 success: function () {
                     $('#admissionModal').modal('hide');
-                    reloadTableData();
+                    // Destroy and reload table
+                    if ($.fn.DataTable.isDataTable('#admissionTable')) {
+                        $('#admissionTable').DataTable().destroy();
+                    }
+                    fetchTableData().then(response => {
+                        createTable(response);
+                        initializeDataTable(response);
+                    });
                     Swal.fire({
                         icon: 'success',
                         title: 'Success!',
