@@ -1,5 +1,4 @@
 $(document).ready(function () {
-
     const apiUrl = "https://glexas.com/hostel_data/API/test/new_admission_crud.php";
     let admissionTable;
 
@@ -10,6 +9,30 @@ $(document).ready(function () {
             type: "GET",
             dataType: "json"
         });
+    }
+
+    function generateColumns(firstRow) {
+        const columns = [];
+
+        Object.keys(firstRow).forEach(key => {
+            if (key !== 'registration_main_id' && key !== 'created_time') {
+                columns.push({ data: key });
+            }
+        });
+
+        columns.push({
+            data: null,
+            render: function (data, type, row) {
+                return `
+                    <div class="d-flex justify-content-center">
+                        <i class="bi bi-pencil-square editBtn" style="cursor: pointer; margin-right: 10px;" aria-label="Edit User"></i>
+                        <i class="bi bi-trash deleteBtn" style="cursor: pointer;" aria-label="Delete User"></i>
+                    </div>
+                `;
+            }
+        });
+
+        return columns;
     }
 
     // Function to initialize DataTable
@@ -65,28 +88,7 @@ $(document).ready(function () {
                     title: 'Admission Data'
                 }
             ],
-            columns: (() => {
-                const columns = [];
-                const firstRow = data.response[0];
-                Object.keys(firstRow).forEach(key => {
-                    if (key !== 'registration_main_id' && key !== 'created_time') {
-                        columns.push({ data: key });
-                    }
-                });
-                columns.push({
-                    data: null,
-                    render: function (data, type, row) {
-                        return `
-                            <div class="d-flex justify-content-center">
-                                <i class="bi bi-pencil-square editBtn" style="cursor: pointer; margin-right: 10px;" aria-label="Edit User"></i>
-                                <i class="bi bi-trash deleteBtn" style="cursor: pointer;" aria-label="Delete User"></i>
-                            </div>
-                        `;
-                    }
-                });
-
-                return columns;
-            })(),
+            columns: generateColumns(data.response[0]),
             language: {
                 buttons: {
                     excel: 'Export to Excel',
@@ -95,9 +97,8 @@ $(document).ready(function () {
                     print: 'Print Table'
                 }
             },
-            drawCallback: function() {
-                // Rebind event handlers after each draw
-                $('#admissionTable tbody').off('click', '.editBtn').on('click', '.editBtn', function() {
+            drawCallback: function () {
+                $('#admissionTable tbody').off('click', '.editBtn').on('click', '.editBtn', function () {
                     const rowData = admissionTable.row($(this).closest('tr')).data();
                     const createdTime = new Date(rowData.created_time);
                     const now = new Date();
@@ -126,7 +127,7 @@ $(document).ready(function () {
                     iti.setNumber(rowData.phone_country_code + rowData.phone_number);
                 });
 
-                $('#admissionTable tbody').off('click', '.deleteBtn').on('click', '.deleteBtn', function() {
+                $('#admissionTable tbody').off('click', '.deleteBtn').on('click', '.deleteBtn', function () {
                     const rowData = admissionTable.row($(this).closest('tr')).data();
                     Swal.fire({
                         title: 'Are you sure?',
@@ -143,7 +144,7 @@ $(document).ready(function () {
                                 type: "DELETE",
                                 contentType: "application/json",
                                 data: JSON.stringify({ registration_main_id: rowData.registration_main_id }),
-                                success: function() {
+                                success: function () {
                                     reloadTableData();
                                     Swal.fire({
                                         icon: 'success',
@@ -153,7 +154,7 @@ $(document).ready(function () {
                                         showConfirmButton: false
                                     });
                                 },
-                                error: function() {
+                                error: function () {
                                     Swal.fire({
                                         icon: 'error',
                                         title: 'Error!',
@@ -167,7 +168,6 @@ $(document).ready(function () {
             }
         });
         
-        // Add initial data
         admissionTable.rows.add(data.response).draw();
     }
 
