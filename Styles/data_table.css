@@ -69,8 +69,8 @@ body {
 }
 
 #phoneInput.form-control {
-    padding-left: 48px !important; 
-    height: 38px !important;      
+    padding-left: 48px !important;
+    height: 38px !important;   
     box-sizing: border-box !important;
     width: 100% !important;
     min-width: 0 !important;
@@ -111,7 +111,7 @@ body {
 .iti input,
 .iti input[type=tel] {
     padding-left: 66px !important;
-    height: 38px !important;     
+    height: 38px !important; 
     width: 100% !important;
     box-sizing: border-box !important;
     display: block !important;
